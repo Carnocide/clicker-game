@@ -3,6 +3,7 @@
 	import flash.display.MovieClip;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.media.SoundTransform;
 	
 	/**
 	  * This is the document level class that runs our entire game.
@@ -10,10 +11,24 @@
 	public class Game extends MovieClip {
 		
 		var score:int = 0
-		
+		var resetButton:ResetButton;
+		var thingy:CoolThing;
+		var song:Song;
 		/** The Constructor of the Game class. */
 		public function Game() {
 			addEventListener(Event.ENTER_FRAME, gameLoop);
+			addEventListener("RESET_GAME", resetGame);
+			//resetbutton
+			thingy = new CoolThing();
+			addChild(thingy);
+			thingy.x = this.stage.stageWidth / 2;
+			thingy.y = this.stage.stageHeight / 4;
+			resetButton = new ResetButton(thingy);
+			resetButton.y = this.stage.stageHeight;
+			song = new Song;
+			song.play(0, 100, new SoundTransform(0.1, 0));
+			
+			
 		}
 		
 		/** 
@@ -28,19 +43,42 @@
 			// 3. update everything
 			
 			thingy.update();
-			score += thingy.unscoredPoints;
-			thingy.unscoredPoints = 0;
-			scoreText.text = "SCORE: " + this.score;
 			
+			var acceptableRangeFromHoopXToScorePoints = (hoop.width / 2); 
+			if (!hoop.hasScored && (thingy.y <= hoop.y + thingy.velocityY && thingy.y >= hoop.y - thingy.velocityY) && thingy.x <= (hoop.x + acceptableRangeFromHoopXToScorePoints) && thingy.x >= (hoop.x - acceptableRangeFromHoopXToScorePoints))
+			{
+				this.score += 100
+				hoop.reposition();
+			}
+			scoreText.text = "SCORE: " + this.score;
 			if (thingy.isOutOfBounds) 
 			{
-				//game over
-				trace("game over")
+				addChild(resetButton);
+				
+				resetButton.x = (stage.stageWidth / 2);
+				resetButton.y = (stage.stageHeight / 2);
+				gameOver.x = (stage.stageWidth / 2);
+				gameOver.y = (stage.stageHeight / 4);
+				
 			}
 			
 			// 4. draw everything
 			
 		} // gameLoop
+		
+		/**
+		* Resets the game to the state it should have at the start of the game
+		* @param e The event object that is triggering this event-handler.
+		* @return returns void
+		*/
+		function resetGame(e:Event):void {
+			thingy.reset();
+			score = 0;
+			gameOver.y = -100;
+			resetButton.y = stage.stageHeight + (.5 * resetButton.height);
+		}
+		
+
 
 	} // Game class
 	
